@@ -1,0 +1,93 @@
+package cml
+
+import imgui
+
+class tree
+    var items={}
+    var data={}
+end
+
+var app=null
+var font=null
+
+function load(name,width,height,lay)
+    var app=imgui.window_application(width,height,name)
+    var font=imgui.add_font_default(20)
+    var temp=true
+    loop
+        app.prepare()
+        imgui.push_font(font)
+        imgui.begin_window("window",temp,{imgui.flags.no_title_bar,imgui.flags.no_move,imgui.flags.no_scroll_bar,imgui.flags.no_collapse,imgui.flags.no_resize})
+        imgui.set_window_pos(imgui.vec2(0,0))
+        imgui.set_window_size(imgui.vec2(app.get_window_width(),app.get_window_height()))
+        
+        imgui.end_window()
+        imgui.pop_font()
+        app.render()
+    until app.is_closed()
+end
+
+namespace chtype
+    constant none=0
+    constant str=1
+    constant num=2
+    constant sym=3
+end
+
+function get_type(ch)
+    if ch.isalpha()
+        return chtype.str
+    end
+    if ch.isdigit()
+        return chtype.num
+    end
+    if ch.ispunct()
+        return chtype.sym
+    end
+    return chtype.none
+end
+
+function word_split(str)
+    var words={}
+    var now=str.size()!=0?get_type(str[0]):chtype.none
+    var temp=""
+    foreach ch in str
+        if get_type(ch)!=now
+            words.push_back(temp:now)
+            temp=""+ch
+            now=get_type(ch)
+        else
+            temp+=ch
+        end
+    end
+    if temp!=""
+        words.push_back(temp:now)
+    end
+    return words
+end
+
+function to_tree(words)
+    var name=true
+    var tr=gcnew tree
+    var now=tr
+    foreach word in words
+        if name==true
+            switch word.second()
+                case 1#chtype.str
+                    tr.items.push_back()
+                end
+                case 3#chtype.sym
+                    
+                end
+                default
+
+                end
+            end
+        else
+        end
+    end
+end
+
+function load_data(str)
+    return to_tree(word_split(str))
+end
