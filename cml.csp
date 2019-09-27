@@ -1,11 +1,8 @@
+#!cs
 package cml
 
 import imgui
 
-class tree
-    var items={}
-    var data={}
-end
 
 var app=null
 var font=null
@@ -28,10 +25,10 @@ function load(name,width,height,lay)
 end
 
 namespace chtype
-    constant none=0
-    constant str=1
-    constant num=2
-    constant sym=3
+    var none=0
+    var str=1
+    var num=2
+    var sym=3
 end
 
 function get_type(ch)
@@ -52,12 +49,14 @@ function word_split(str)
     var now=str.size()!=0?get_type(str[0]):chtype.none
     var temp=""
     foreach ch in str
-        if get_type(ch)!=now
-            words.push_back(temp:now)
-            temp=""+ch
-            now=get_type(ch)
-        else
-            temp+=ch
+        if ch!="\n"
+            if get_type(ch)!=now or get_type(ch)==chtype.sym
+                words.push_back(temp:now)
+                temp=""+ch
+                now=get_type(ch)
+            else
+                temp+=ch
+            end
         end
     end
     if temp!=""
@@ -66,28 +65,47 @@ function word_split(str)
     return words
 end
 
-function to_tree(words)
-    var name=true
-    var tr=gcnew tree
-    var now=tr
-    foreach word in words
-        if name==true
-            switch word.second()
-                case 1#chtype.str
-                    tr.items.push_back()
-                end
-                case 3#chtype.sym
-                    
-                end
-                default
-
-                end
+function combine(words)
+    var new_words={}
+    var new_words2={}
+    var instr=false
+    foreach a in words
+        if instr==false
+            if a.first()=="\""
+                instr=true
+                new_words.push_back("":chtype.str)
+            else
+                new_words.push_back(a)
             end
         else
+            if a.first()=="\""
+                instr=false
+            else
+                new_words.back().first()+=a.first()
+            end
         end
     end
+    foreach a in new_words
+        if a.first()!="." and a.second()!=chtype.sym
+            if new_words2.size()!=0
+                if a.second()==chtype.num and new_words2.back().second()==chtype.num
+                    new_words2.back()=to_integer(new_words2.back().first())+math.pow(10,-(a.first().size()))*to_integer(a.first())
+                else
+                    new_words2.push_back(a)
+                end
+            else
+                new_words2.push_back(a)
+            end
+        end
+    end
+    return new_words2
+end
+
+function to_tree(words)
+
 end
 
 function load_data(str)
-    return to_tree(word_split(str))
+    return combine(word_split(str))
+    return to_drawable(combine(word_split(str)))
 end

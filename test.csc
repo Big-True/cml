@@ -1,6 +1,6 @@
 #!cs
 import cml
-var test=cml.word_split("d3hd.389h3.8he92.8h.93w")
+var test=cml.load_data("a;b;c(d,\"dwadsd\",14.24)")
 foreach i in test
     system.out.println(i.first()+"->"+i.second())
 end
