@@ -3,32 +3,21 @@ package cml
 
 import imgui
 
+class drawable
+    var name=""
+    var data={}
+end
 
 var app=null
 var font=null
-
-function load(name,width,height,lay)
-    var app=imgui.window_application(width,height,name)
-    var font=imgui.add_font_default(20)
-    var temp=true
-    loop
-        app.prepare()
-        imgui.push_font(font)
-        imgui.begin_window("window",temp,{imgui.flags.no_title_bar,imgui.flags.no_move,imgui.flags.no_scroll_bar,imgui.flags.no_collapse,imgui.flags.no_resize})
-        imgui.set_window_pos(imgui.vec2(0,0))
-        imgui.set_window_size(imgui.vec2(app.get_window_width(),app.get_window_height()))
-        
-        imgui.end_window()
-        imgui.pop_font()
-        app.render()
-    until app.is_closed()
-end
 
 namespace chtype
     var none=0
     var str=1
     var num=2
     var sym=3
+    var stri=4
+    var ioid=5
 end
 
 function get_type(ch)
@@ -73,7 +62,7 @@ function combine(words)
         if instr==false
             if a.first()=="\""
                 instr=true
-                new_words.push_back("":chtype.str)
+                new_words.push_back("":chtype.stri)
             else
                 new_words.push_back(a)
             end
@@ -86,10 +75,10 @@ function combine(words)
         end
     end
     foreach a in new_words
-        if a.first()!="." and a.second()!=chtype.sym
+        if not(a.first()=="." and a.second()==chtype.sym)
             if new_words2.size()!=0
                 if a.second()==chtype.num and new_words2.back().second()==chtype.num
-                    new_words2.back()=to_integer(new_words2.back().first())+math.pow(10,-(a.first().size()))*to_integer(a.first())
+                    new_words2.back().first()=to_integer(new_words2.back().first())+math.pow(10,-(a.first().size()))*to_integer(a.first())
                 else
                     new_words2.push_back(a)
                 end
@@ -98,14 +87,70 @@ function combine(words)
             end
         end
     end
-    return new_words2
+    new_words={}
+    foreach a in new_words2
+        if new_words.empty()==false
+            if a.second()==chtype.num and new_words.back().second()==chtype.ioid
+                new_words.back().first()+=a.first()
+            else
+                if a.second()==chtype.sym and (a.first()=="&"or a.first()=="*")
+                    new_words.push_back(a.first():chtype.ioid)
+                else
+                    new_words.push_back(a)
+                end
+            end
+        else
+            new_words.push_back(a)
+        end
+    end
+    return new_words
 end
 
-function to_tree(words)
+function new_drawable(name)
+    var a=new drawable
+    a.name=name
+    return a
+end
 
+function to_drawable(data)
+    var draw={}
+    foreach a in data
+        if draw.empty()==false
+            switch a.second()
+                case 1 #drawable name
+                    draw.push_back(new_drawable(a.first()))
+                end
+                case 2 #data number
+                    draw.back().data.push_back(a.first())
+                end
+                case 4 #data string
+                    draw.back().data.push_back(a.first())
+                end
+            end
+        else
+            draw.push_back(new_drawable(a.first()))
+        end
+    end
 end
 
 function load_data(str)
-    return combine(word_split(str))
     return to_drawable(combine(word_split(str)))
+end
+
+function load(name,width,height,str)
+    var app=imgui.window_application(width,height,name)
+    var font=imgui.add_font_default(20)
+    var temp=true
+    var data=load_data(str)
+    loop
+        app.prepare()
+        imgui.push_font(font)
+        imgui.begin_window("window",temp,{imgui.flags.no_title_bar,imgui.flags.no_move,imgui.flags.no_scroll_bar,imgui.flags.no_collapse,imgui.flags.no_resize})
+        imgui.set_window_pos(imgui.vec2(0,0))
+        imgui.set_window_size(imgui.vec2(app.get_window_width(),app.get_window_height()))
+        
+        imgui.end_window()
+        imgui.pop_font()
+        app.render()
+    until app.is_closed()
 end
