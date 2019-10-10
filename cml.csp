@@ -5,11 +5,20 @@ import imgui
 
 class drawable
     var name=""
-    var data={}
+    var data={} #name:isid t/f
 end
 
+class nameset
+    var data=new hash_map
+    function add(name,func)
+        data[name]=func
+        return this
+    end
+end
 var app=null
 var font=null
+var ns=new nameset
+ns.add("text",imgui.text)
 
 namespace chtype
     var none=0
@@ -126,29 +135,35 @@ function to_drawable(data)
                 case 4 #data string
                     draw.back().data.push_back(a.first())
                 end
+                case 5 #input/output array id
+                    draw.back().data.push_back(a.first())
+                end
             end
         else
             draw.push_back(new_drawable(a.first()))
         end
     end
+    return draw
 end
 
-function load_data(str)
+function load_data(str,app)
     return to_drawable(combine(word_split(str)))
 end
 
-function load(name,width,height,str)
+function load(name,width,height,str,in,out)
     var app=imgui.window_application(width,height,name)
     var font=imgui.add_font_default(20)
     var temp=true
-    var data=load_data(str)
+    var data=load_data(str,app)
     loop
         app.prepare()
         imgui.push_font(font)
         imgui.begin_window("window",temp,{imgui.flags.no_title_bar,imgui.flags.no_move,imgui.flags.no_scroll_bar,imgui.flags.no_collapse,imgui.flags.no_resize})
         imgui.set_window_pos(imgui.vec2(0,0))
         imgui.set_window_size(imgui.vec2(app.get_window_width(),app.get_window_height()))
-        
+        foreach i in data
+            (ns.data[i.name])((i.data)...)
+        end
         imgui.end_window()
         imgui.pop_font()
         app.render()
